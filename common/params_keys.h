@@ -6,6 +6,10 @@
 #include "cereal/gen/cpp/log.capnp.h"
 
 inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
+    {"jvePilot.settings.alerts.leadDepart", {PERSISTENT, BOOL, "1"}},
+    {"jvePilot.settings.alerts.greenLight", {PERSISTENT, BOOL, "1"}},
+    {"jvePilot.settings.nightScreenOff", {PERSISTENT, BOOL, "1"}},
+    {"jvePilot.settings.nightScreenOff.delay", {PERSISTENT, INT, "30"}},
     {"jvePilot.settings.accEco", {PERSISTENT, INT, "1"}},
     {"jvePilot.settings.accEco.speedAheadLevel1", {PERSISTENT, INT, "7"}},
     {"jvePilot.settings.accEco.speedAheadLevel2", {PERSISTENT, INT, "5"}},

@@ -17,6 +17,7 @@ from openpilot.common.gps import get_gps_location_service
 from openpilot.selfdrive.car.car_specific import CarSpecificEvents
 from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 from openpilot.selfdrive.selfdrived.events import Events, ET
+from openpilot.selfdrive.selfdrived.jve_alerts import JveAlertsHelper
 from openpilot.selfdrive.selfdrived.helpers import ExcessiveActuationCheck
 from openpilot.selfdrive.selfdrived.state import StateMachine
 from openpilot.selfdrive.selfdrived.alertmanager import AlertManager, set_offroad_alert
@@ -104,6 +105,7 @@ class SelfdriveD:
     self.CS_prev = car.CarState.new_message()
     self.AM = AlertManager()
     self.events = Events()
+    self.jve_alerts = JveAlertsHelper()
 
     self.initialized = False
     self.enabled = False
@@ -150,6 +152,9 @@ class SelfdriveD:
     """Compute onroadEvents from carState"""
 
     self.events.clear()
+
+    for ev in self.jve_alerts.update(self.sm, CS):
+      self.events.add(ev)
 
     if self.sm['controlsState'].lateralControlState.which() == 'debugState':
       self.events.add(EventName.joystickDebug)

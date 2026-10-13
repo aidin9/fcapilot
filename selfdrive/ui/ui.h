@@ -118,6 +118,12 @@ private:
   FirstOrderFilter brightness_filter;
   QFuture<void> brightness_future;
 
+  // jvePilot: night screen-off
+  int night_off_timer = 0;
+  bool night_screen_off_active = false;
+  bool night_cfg_enabled = true;
+  int night_cfg_delay = 30;
+
   void updateBrightness(const UIState &s);
   void updateWakefulness(const UIState &s);
   void setAwake(bool on);

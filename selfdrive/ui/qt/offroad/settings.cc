@@ -221,6 +221,34 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "../assets/offroad/icon_calibration.png",
                            this));
 
+  // Courtesy chimes
+  addItem(new ParamControl("jvePilot.settings.alerts.leadDepart",
+                           "Lead Depart Chime",
+                           "Chime when the car ahead pulls away while you are stopped.",
+                           "../assets/jvepilot/settings/icon_misc.png",
+                           this));
+  addItem(new ParamControl("jvePilot.settings.alerts.greenLight",
+                           "Green Light Chime",
+                           "Chime when stopped with nothing ahead and it looks like traffic is starting to move.",
+                           "../assets/jvepilot/settings/icon_misc.png",
+                           this));
+
+  // Night screen off
+  QList<struct ConfigButton> nightScreenConfigs = {
+    { "jvePilot.settings.nightScreenOff.delay",
+      5, 120,
+      "Screen Off Delay (seconds)",
+      "Default: 30, Min: 5, Max: 120\n"
+        "How long without touching the screen before it turns off when it is dark. Touch the screen to wake it."
+    }
+  };
+  addItem(new ParamControl("jvePilot.settings.nightScreenOff",
+                           "Night Screen Off",
+                           "Turn the screen off after inactivity when it is dark. Touch to wake. Driver-assistance warnings wake the screen.",
+                           "../assets/jvepilot/settings/icon_misc.png",
+                           this,
+                           &nightScreenConfigs));
+
   // Make/Model/Year
   targetCarBtn = new ButtonControl(tr("Target Car"), tr("SELECT"));
   connect(targetCarBtn, &ButtonControl::clicked, [=]() {

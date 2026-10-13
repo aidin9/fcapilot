@@ -155,6 +155,7 @@ void Device::resetInteractiveTimeout(int timeout) {
     timeout = (ignition_on ? 10 : 30);
   }
   interactive_timeout = timeout * UI_FREQ;
+  night_off_timer = 0;  // jvePilot: any interaction postpones night screen-off
 }
 
 void Device::updateBrightness(const UIState &s) {
@@ -192,11 +193,48 @@ void Device::updateWakefulness(const UIState &s) {
 
   if (ignition_just_turned_off) {
     resetInteractiveTimeout();
+    night_off_timer = 0;
+    night_screen_off_active = false;
   } else if (interactive_timeout > 0 && --interactive_timeout == 0) {
     emit interactiveTimeout();
   }
 
-  setAwake(s.scene.ignition || interactive_timeout > 0);
+  // jvePilot: auto screen-off at night after inactivity
+  if ((s.sm->frame % UI_FREQ) == 0) {
+    auto params = Params();
+    night_cfg_enabled = params.getBool("jvePilot.settings.nightScreenOff");
+    night_cfg_delay = std::atoi(params.get("jvePilot.settings.nightScreenOff.delay").c_str());
+    if (night_cfg_delay < 5) night_cfg_delay = 5;
+    if (night_cfg_delay > 120) night_cfg_delay = 120;
+  }
+
+  // Wake for urgent alerts and when selfdrived is unresponsive: the UI
+  // synthesizes its own critical takeover alert that never appears in
+  // selfdriveState, so staleness must wake the screen too. Never hide warnings.
+  uint64_t ss_frame = s.sm->rcv_frame("selfdriveState");
+  bool ss_stale = ss_frame == 0 || (s.sm->frame - ss_frame) > 2 * UI_FREQ;
+  bool urgent_alert = false;
+  if (!ss_stale) {
+    auto ss = (*s.sm)["selfdriveState"].getSelfdriveState();
+    urgent_alert = ss.getAlertStatus() >= cereal::SelfdriveState::AlertStatus::USER_PROMPT;
+  }
+  if (ss_stale || urgent_alert) {
+    night_off_timer = 0;
+    night_screen_off_active = false;
+  }
+
+  bool dark = s.scene.started && s.scene.light_sensor >= 0 && s.scene.light_sensor < 25.0f;
+  if (night_cfg_enabled && dark && !ss_stale && !urgent_alert) {
+    if (night_off_timer < night_cfg_delay * UI_FREQ) {
+      night_off_timer++;
+    }
+    night_screen_off_active = night_off_timer >= night_cfg_delay * UI_FREQ;
+  } else {
+    night_off_timer = 0;
+    night_screen_off_active = false;
+  }
+
+  setAwake((s.scene.ignition || interactive_timeout > 0) && !night_screen_off_active);
 }
 
 UIState *uiState() {

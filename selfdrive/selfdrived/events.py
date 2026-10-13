@@ -250,6 +250,16 @@ def below_steer_speed_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.S
     Priority.LOW, VisualAlert.steerRequired, AudibleAlert.prompt if alert else AudibleAlert.none, 0.4)
 
 
+def jve_lead_depart_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
+  return Alert("Lead Car Departing", "", AlertStatus.normal, AlertSize.small,
+               Priority.LOWER, VisualAlert.none, AudibleAlert.prompt, 1.5)
+
+
+def jve_green_light_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
+  return Alert("Green Light?", "Traffic appears to be moving", AlertStatus.normal, AlertSize.small,
+               Priority.LOWER, VisualAlert.none, AudibleAlert.prompt, 1.5)
+
+
 def calibration_incomplete_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
   first_word = 'Recalibration' if sm['liveCalibration'].calStatus == log.LiveCalibrationData.Status.recalibrating else 'Calibration'
   return Alert(
@@ -1021,6 +1031,14 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
 
   EventName.audioFeedback: {
     ET.PERMANENT: audio_feedback_alert,
+  },
+
+  EventName.jveLeadDepart: {
+    ET.WARNING: jve_lead_depart_alert,
+  },
+
+  EventName.jveGreenLight: {
+    ET.WARNING: jve_green_light_alert,
   },
 }
 
